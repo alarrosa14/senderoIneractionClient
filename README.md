@@ -1,4 +1,2 @@
-# senderoSoundClient
-Sendero Sound Client
-
-Código adaptado para Linux - Eclipse
+# senderoIneractionClient
+Sendero client to receive messages from RabbitMQ queue. 
