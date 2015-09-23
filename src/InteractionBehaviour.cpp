@@ -68,13 +68,20 @@ void InteractionBehaviour::update() {
 
             float dist = touchPosition.distance(pxPosition);
 
-            px->blendRGBA(255,255,255,255,1);
+            px->blendRGBA(0,0,0,255,1);
 
             if (dist < this->radius){
                 float normalizedDist = 1 - dist/this->radius;
                 px->blendRGBA(254,17,143,255,ofLerp(0.7,1,normalizedDist));
             }
         }
+
+    }else{
+        for(int i = 0; i < pixelsFast->size(); i++){
+            Pixel* px = (*pixelsFast)[i];
+            px->fadeToBlack(0.9);
+        }
+
     }
 
 }
@@ -97,5 +104,4 @@ void InteractionBehaviour::keyPressed(int key){
 
 void InteractionBehaviour::exit() {
     SpecificBehaviour::exit();
-    connection->
 }
