@@ -28,7 +28,7 @@ private:
     void exit();
     
     Channel::ptr_t connection;
-    ofSpherePrimitive sphere;
+    float radius;
 };
 
 #endif /* defined(__SenderoInteractionClient__InteractionBehaviour__) */

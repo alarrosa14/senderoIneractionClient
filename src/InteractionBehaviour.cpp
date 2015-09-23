@@ -31,6 +31,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
 }
 
 InteractionBehaviour::InteractionBehaviour(){
+    radius = 50;
 }
 
 InteractionBehaviour::~InteractionBehaviour(){
@@ -49,25 +50,36 @@ void InteractionBehaviour::update() {
     Envelope::ptr_t env;
     BasicMessage::ptr_t message;
 
-    if (connection->BasicConsumeMessage("consumertag", env, 1))
+    if (connection->BasicConsumeMessage("consumertag", env, 0))
     {
         message = env->Message();
-        std::cout << "Message text: " << message->Body() << std::endl;
         std::string coords = message->Body();
         std::vector<std::string> coord = split(coords,',');
 
-        double x = atof(coord[0].c_str());
-        double y = atof(coord[1].c_str());
-        double z = atof(coord[2].c_str());
+        float x = atof(coord[0].c_str());
+        float y = atof(coord[1].c_str());
+        float z = atof(coord[2].c_str());
 
-        sphere.setRadius(10);
-        sphere.setPosition(x*40, y*40, z*40);
+        ofVec3f touchPosition(x, y, z); 
+
+        for(int i = 0; i < pixelsFast->size(); i++){
+            Pixel* px = (*pixelsFast)[i];
+            ofVec3f pxPosition = px->getPosition();
+
+            float dist = touchPosition.distance(pxPosition);
+
+            px->blendRGBA(255,255,255,255,1);
+
+            if (dist < this->radius){
+                float normalizedDist = 1 - dist/this->radius;
+                px->blendRGBA(254,17,143,255,ofLerp(0.7,1,normalizedDist));
+            }
+        }
     }
 
 }
 
 void InteractionBehaviour::draw() {
-    sphere.draw();
 }
 
 void InteractionBehaviour::keyPressed(int key){
@@ -85,4 +97,5 @@ void InteractionBehaviour::keyPressed(int key){
 
 void InteractionBehaviour::exit() {
     SpecificBehaviour::exit();
+    connection->
 }
