@@ -41,8 +41,8 @@ void InteractionBehaviour::customSetup (map<int,Pixel*>* pixels, vector<Pixel*>*
     
     this->connection = Channel::Create("localhost");
 
-    connection->BindQueue("interactions_queue", "amq.direct", "");
-    connection->BasicConsume("interactions_queue", "consumertag");
+    connection->BindQueue("dragging_queue", "amq.direct", "");
+    connection->BasicConsume("dragging_queue", "consumertag");
 }
 
 void InteractionBehaviour::update() {
@@ -61,17 +61,18 @@ void InteractionBehaviour::update() {
         if (connection->BasicConsumeMessage("consumertag", env, 0)){
 
             message = env->Message();
+            std::cout << "Message: " << message->Body() << endl;
             std::string coords = message->Body();
             std::vector<std::string> coord = split(coords,',');
 
             float x = atof(coord[0].c_str());
             float y = atof(coord[1].c_str());
             float z = atof(coord[2].c_str());
-            int r = atoi(coord[3].c_str());
-            int g = atoi(coord[4].c_str());
-            int b = atoi(coord[5].c_str());
+//            int r = atoi(coord[3].c_str());
+//            int g = atoi(coord[4].c_str());
+//            int b = atoi(coord[5].c_str());
 
-            ofVec3f touchPosition(x, y, z); 
+            ofVec3f touchPosition(x, y, z);
 
             for(int i = 0; i < pixelsFast->size(); i++){
                 Pixel* px = (*pixelsFast)[i];
@@ -79,11 +80,11 @@ void InteractionBehaviour::update() {
 
                 float dist = touchPosition.distance(pxPosition);
 
-                // px->blendRGBA(0,0,0,255,1);
+//                px->blendRGBA(255,255,255,255,1);
 
                 if (dist < this->radius){
                     float normalizedDist = 1 - dist/this->radius;
-                    px->blendRGBA(r,g,b,255,ofLerp(0.1,1,normalizedDist));
+                    px->blendRGBA(255,255,255,255,ofLerp(0.1,1,normalizedDist));
                 }
             }
 
