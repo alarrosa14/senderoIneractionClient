@@ -28,6 +28,7 @@ private:
     void exit();
     
     Channel::ptr_t connection;
+    std::map<std::string, std::vector<int> > userColors;
     float radius;
 };
 
