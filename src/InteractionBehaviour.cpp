@@ -32,13 +32,14 @@ std::vector<std::string> split(const std::string &s, char delim) {
 
 InteractionBehaviour::InteractionBehaviour(){
     radius = 30;
+
+    userColors = std::map<std::string, std::vector<int> >();
 }
 
 InteractionBehaviour::~InteractionBehaviour(){
 }
 
 void InteractionBehaviour::customSetup (map<int,Pixel*>* pixels, vector<Pixel*>* pixelsFast) {
-    
     this->connection = Channel::Create("localhost");
 
     connection->BindQueue("dragging_queue", "amq.direct", "");
@@ -61,6 +62,26 @@ void InteractionBehaviour::update() {
         if (connection->BasicConsumeMessage("consumertag", env, 0)){
 
             message = env->Message();
+
+            std::string web_client_id;
+        	int r, g, b;
+            if (message->HeaderTableIsSet() && message->HeaderTable().count("web_client_id") > 0) {
+            	web_client_id = message->HeaderTable().at("web_client_id").GetString();
+            	std::cout << "user: " << message->HeaderTable().at("web_client_id").GetString() << endl;
+
+            	if (userColors.count(web_client_id) > 0) {
+            		r = userColors.at(web_client_id)[0];
+            		g = userColors.at(web_client_id)[1];
+					b = userColors.at(web_client_id)[2];
+            	} else {
+            		std::vector<int> rgb = std::vector<int>();
+            		rgb.push_back(rand() % 256);
+            		rgb.push_back(rand() % 256);
+            		rgb.push_back(rand() % 256);
+            		userColors[web_client_id] = rgb;
+            	}
+            }
+
             std::cout << "Message: " << message->Body() << endl;
             std::string coords = message->Body();
             std::vector<std::string> coord = split(coords,',');
@@ -84,7 +105,7 @@ void InteractionBehaviour::update() {
 
                 if (dist < this->radius){
                     float normalizedDist = 1 - dist/this->radius;
-                    px->blendRGBA(255,255,255,255,ofLerp(0.1,1,normalizedDist));
+                    px->blendRGBA(r,g,b,255,ofLerp(0.1,1,normalizedDist));
                 }
             }
 
