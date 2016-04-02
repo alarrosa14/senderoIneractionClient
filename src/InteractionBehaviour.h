@@ -14,6 +14,12 @@
 #include <SimpleAmqpClient/SimpleAmqpClient.h>
 
 using namespace AmqpClient;
+using namespace std;
+
+typedef struct Color {
+	int r, g, b;
+	Color(int red, int green, int blue) : r(red), g(green), b(blue) {}
+};
 
 class InteractionBehaviour : public SpecificBehaviour {
 public:
@@ -27,8 +33,14 @@ private:
     void keyPressed(int key);
     void exit();
     
-    Channel::ptr_t connection;
-    std::map<std::string, std::vector<int> > userColors;
+    Channel::ptr_t dataConnection;
+    Channel::ptr_t controlConnection;
+
+    map<string, unsigned int> userColorIndex;
+
+    vector<Color> colorPalette;
+    unsigned int userColorIterator = 0;
+
     float radius;
 };
 

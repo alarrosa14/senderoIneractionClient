@@ -14,6 +14,14 @@
 #include <stdlib.h>     /* atof */
 #include <vector>
 
+static const Color rgbColors[] = {
+	Color(238,64,53),
+	Color(243,119,54),
+	Color(253,244,152),
+	Color(123,192,67),
+	Color(3,146,207)
+};
+
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
     std::string item;
@@ -32,95 +40,95 @@ std::vector<std::string> split(const std::string &s, char delim) {
 
 InteractionBehaviour::InteractionBehaviour(){
     radius = 30;
-
-    userColors = std::map<std::string, std::vector<int> >();
+    userColorIterator = 0;
+    userColorIndex = map<string, unsigned int>();
+    colorPalette = vector<Color>(rgbColors, rgbColors + sizeof(rgbColors) / sizeof(Color) );
 }
 
 InteractionBehaviour::~InteractionBehaviour(){
 }
 
 void InteractionBehaviour::customSetup (map<int,Pixel*>* pixels, vector<Pixel*>* pixelsFast) {
-    this->connection = Channel::Create("localhost");
+    dataConnection = Channel::Create("localhost");
+    dataConnection->BindQueue("dragging_queue", "amq.direct");
+    dataConnection->BasicConsume("dragging_queue");
 
-    connection->BindQueue("dragging_queue", "amq.direct", "");
-    connection->BasicConsume("dragging_queue", "consumertag");
+    controlConnection = Channel::Create("localhost");
+    controlConnection ->BindQueue("control_queue", "amq.direct");
+    controlConnection ->BasicConsume("control_queue");
 }
 
 void InteractionBehaviour::update() {
 
     Envelope::ptr_t env;
     BasicMessage::ptr_t message;
+	std::string web_client_id;
+
+    Envelope::ptr_t controlEnv;
+    if (controlConnection->BasicConsumeMessage(controlEnv, 0)) {
+    	message = controlEnv->Message();
+    	std::string command = message->Body();
+    	if (command == "disconnected" && message->HeaderTableIsSet() && message->HeaderTable().count("web_client_id") > 0) {
+			web_client_id = message->HeaderTable().at("web_client_id").GetString();
+			cout << "Client disconnnected: " << web_client_id << endl;
+			if (userColorIndex.count(web_client_id) > 0)
+				userColorIndex.erase(web_client_id);
+    	}
+    }
 
     for(int i = 0; i < pixelsFast->size(); i++){
         Pixel* px = (*pixelsFast)[i];
         // px->blendRGBA(0,0,0,255,1);
-        px->fadeToBlack(0.9);
+        px->fadeToBlack(0.95);
     }
 
-    for(int i = 0; i < 5; i++){
+	int i;
+    for (i = 0; i < 10 && dataConnection->BasicConsumeMessage(env, 0); i++) {
 
-        if (connection->BasicConsumeMessage("consumertag", env, 0)){
+		message = env->Message();
 
-            message = env->Message();
+		int r, g, b;
+		if (message->HeaderTableIsSet() && message->HeaderTable().count("web_client_id") > 0) {
+			web_client_id = message->HeaderTable().at("web_client_id").GetString();
+			std::cout << "user: " << message->HeaderTable().at("web_client_id").GetString() << endl;
 
-            std::string web_client_id;
-        	int r, g, b;
-            if (message->HeaderTableIsSet() && message->HeaderTable().count("web_client_id") > 0) {
-            	web_client_id = message->HeaderTable().at("web_client_id").GetString();
-            	std::cout << "user: " << message->HeaderTable().at("web_client_id").GetString() << endl;
+			if (userColorIndex.count(web_client_id) == 0) {
+				userColorIndex[web_client_id] = userColorIterator;
+				userColorIterator = (userColorIterator + 1) % colorPalette.size();
+			}
 
-            	if (userColors.count(web_client_id) > 0) {
-            		r = userColors.at(web_client_id)[0];
-            		g = userColors.at(web_client_id)[1];
-					b = userColors.at(web_client_id)[2];
-            	} else {
-            		std::vector<int> rgb = std::vector<int>();
-            		rgb.push_back(rand() % 256);
-            		rgb.push_back(rand() % 256);
-            		rgb.push_back(rand() % 256);
-            		userColors[web_client_id] = rgb;
-            	}
-            }
+			r = colorPalette.at(userColorIndex[web_client_id]).r;
+			g = colorPalette.at(userColorIndex[web_client_id]).g;
+			b = colorPalette.at(userColorIndex[web_client_id]).b;
+		}
 
-            std::cout << "Message: " << message->Body() << endl;
-            std::string coords = message->Body();
-            std::vector<std::string> coord = split(coords,',');
+		std::cout << "Message: " << message->Body() << endl;
+		std::string coords = message->Body();
+		std::vector<std::string> coord = split(coords,',');
 
-            float x = atof(coord[0].c_str());
-            float y = atof(coord[1].c_str());
-            float z = atof(coord[2].c_str());
+		float x = atof(coord[0].c_str());
+		float y = atof(coord[1].c_str());
+		float z = atof(coord[2].c_str());
 //            int r = atoi(coord[3].c_str());
 //            int g = atoi(coord[4].c_str());
 //            int b = atoi(coord[5].c_str());
 
-            ofVec3f touchPosition(x, y, z);
+		ofVec3f touchPosition(x, y, z);
 
-            for(int i = 0; i < pixelsFast->size(); i++){
-                Pixel* px = (*pixelsFast)[i];
-                ofVec3f pxPosition = px->getPosition();
+		for(int i = 0; i < pixelsFast->size(); i++){
+			Pixel* px = (*pixelsFast)[i];
+			ofVec3f pxPosition = px->getPosition();
 
-                float dist = touchPosition.distance(pxPosition);
+			float dist = touchPosition.distance(pxPosition);
 
 //                px->blendRGBA(255,255,255,255,1);
 
-                if (dist < this->radius){
-                    float normalizedDist = 1 - dist/this->radius;
-                    px->blendRGBA(r,g,b,255,ofLerp(0.1,1,normalizedDist));
-                }
-            }
-
-        }else{
-
-            // if (i == 0){
-            //     for(int i = 0; i < pixelsFast->size(); i++){
-            //         Pixel* px = (*pixelsFast)[i];
-            //         px->fadeToBlack(0.9);
-            //     }
-            // }
-            break;
-        }
+			if (dist < this->radius){
+				float normalizedDist = 1 - dist/this->radius;
+				px->blendRGBA(r,g,b,255,ofLerp(0.1,1,normalizedDist));
+			}
+		}
     }
-
 }
 
 void InteractionBehaviour::draw() {
