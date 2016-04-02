@@ -67,7 +67,7 @@ void InteractionBehaviour::update() {
     }
 
 	int i;
-    for (i = 0; i < 10 && dataConnection->BasicConsumeMessage(env, 0); i++) {
+    for (i = 0; i <= userColorIndex.size() && dataConnection->BasicConsumeMessage(env, 0); i++) {
 
 		message = env->Message();
 
@@ -75,14 +75,15 @@ void InteractionBehaviour::update() {
 			web_client_id = message->HeaderTable().at("web_client_id").GetString();
 
 			if (message->Type() == "client_disconnected") {
-				cout << "Client disconnnected: " << web_client_id << endl;
-				if (userColorIndex.count(web_client_id) > 0)
+				if (userColorIndex.count(web_client_id) > 0) {
 					userColorIndex.erase(web_client_id);
+					cout << "Client disconnnected: " << web_client_id << " -> " << userColorIndex.size() << " clients now." << endl;
+				}
 			} else if (message->Type() == "interaction_data") {
 				if (userColorIndex.count(web_client_id) == 0) {
-					cout << "New client detected: " << web_client_id << endl;
 					userColorIndex[web_client_id] = userColorIterator;
 					userColorIterator = (userColorIterator + 1) % colorPalette.size();
+					cout << "New client detected: " << web_client_id << " -> " << userColorIndex.size() << " clients now." << endl;
 				}
 
 				r = colorPalette.at(userColorIndex[web_client_id]).r;
