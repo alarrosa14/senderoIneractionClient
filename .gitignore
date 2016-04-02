@@ -5,6 +5,7 @@
 .metadata
 .gradle
 bin/senderoInteractionClient
+bin/senderoInteractionClient_debug
 obj/
 tmp/
 *.tmp
