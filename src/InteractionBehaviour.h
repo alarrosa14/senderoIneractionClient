@@ -34,7 +34,6 @@ private:
     void exit();
     
     Channel::ptr_t dataConnection;
-    Channel::ptr_t controlConnection;
 
     map<string, unsigned int> userColorIndex;
 
