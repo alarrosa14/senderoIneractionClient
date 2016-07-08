@@ -25,7 +25,9 @@ void GenericClientManager::setup(){
     this->loadFromXML();
         
     if(useServer){
-        this->tcpClient.setup(this->serverIP, this->serverTCPPort);
+    	if (!this->tcpClient.setup(this->serverIP, this->serverTCPPort))
+    		exit();
+
         this->configureFromServer();
         this->udpManager.Create();
         this->udpManager.Connect(this->serverIP.data(),this->UDPPort);
@@ -87,6 +89,9 @@ void GenericClientManager::checkServerMessages(){
     
     // <message fps="18" messageError="true" lastSequenceNumber="330">
     
+    if (!tcpClient.isConnected())
+    	exit();
+
     response= this->tcpClient.receive();
     if( response.length() > 0 ){
         received=true;
@@ -879,9 +884,8 @@ void GenericClientManager::draw(){
 
 
 void GenericClientManager::exit(){
-    if(this->tcpClient.isConnected()){
-        this->tcpClient.close();
-    }
+    this->tcpClient.close();
+    this->udpManager.Close();
     this->specific->exit();
 }
 
