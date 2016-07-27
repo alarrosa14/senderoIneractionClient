@@ -15,11 +15,11 @@
 #include <vector>
 
 static const Color rgbColors[] = {
-	Color(238,64,53),
-	Color(243,119,54),
-	Color(253,244,152),
-	Color(123,192,67),
-	Color(3,146,207)
+  // Color(243,119,54), // Orange
+  // Color(253,244,152), // Pistacchio
+  Color(3,146,207), // Blue
+  Color(123,192,67), // Green
+	Color(238,64,53) // Red
 };
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
