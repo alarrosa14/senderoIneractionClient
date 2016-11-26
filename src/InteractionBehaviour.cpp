@@ -19,7 +19,18 @@ static const Color rgbColors[] = {
   // Color(253,244,152), // Pistacchio
   Color(3,146,207), // Blue
   Color(123,192,67), // Green
-	Color(238,64,53) // Red
+	Color(238,64,53), // Red
+  Color(236, 89, 35),
+  Color(167, 66, 56),
+  Color(0, 46, 95),
+  Color(192, 92, 32),
+  Color(31, 29, 30),
+  Color(238, 113, 81),
+  Color(197, 168, 11),
+  Color(1, 97, 111),
+  Color(130, 196, 92),
+  Color(183, 17, 55),
+  Color(0, 64, 44)
 };
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
