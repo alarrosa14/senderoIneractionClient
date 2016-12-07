@@ -1,4 +1,3 @@
 ofxNetwork
 ofxXmlSettings
 ofxAssimpModelLoader
-ofxTwBar

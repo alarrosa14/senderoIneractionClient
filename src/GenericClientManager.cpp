@@ -29,10 +29,11 @@ void GenericClientManager::setup(){
     		exit();
 
         this->configureFromServer();
-        this->udpManager.Create();
-        this->udpManager.Connect(this->serverIP.data(),this->UDPPort);
-        this->udpManager.SetNonBlocking(true);
     }
+    this->udpManager.Create();
+    this->udpManager.Connect(this->serverIP.data(),this->UDPPort);
+    this->udpManager.SetNonBlocking(true);
+    
     
     this->transmitEnabled = true;
     
@@ -77,7 +78,7 @@ void GenericClientManager::update(){
     
     this->specific->update();
     
-    if (transmitEnabled && useServer){
+    if (transmitEnabled) { // && useServer){
         transmitFrame();
     }
     
@@ -534,6 +535,14 @@ int GenericClientManager::loadFromXML(){
 		else{
 			this->useServer = false;
 		}
+
+        string udpPort = "UDPPort";
+        if(config->Attribute(udpPort.c_str())){
+            this->UDPPort = ofToInt(config->Attribute("UDPPort"));
+        }
+        else{
+            this->UDPPort = false;
+        }
         
         //meshes
         for( mesh; mesh; mesh=mesh->NextSiblingElement())
@@ -561,7 +570,7 @@ int GenericClientManager::loadFromXML(){
             
             model->loadModel(meshPath);
             
-            model->setScaleNomalization(false);
+            model->setScaleNormalization(false);
             
             model->setScale(1.0f, 1.0f, 1.0f);
             
